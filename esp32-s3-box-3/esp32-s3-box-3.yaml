@@ -833,12 +833,12 @@ display:
           // Piirrä tunnit & kaksoispiste valkoisella
           it.printf(160, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
           // Piirrä minuutit keltaisella
-          it.printf(160, 182, id(font_clock), Color::YELLOW, TextAlign::LEFT, minute_str);
+          it.printf(160, 182, id(font_clock), Color::WHITE, TextAlign::LEFT, minute_str);
 
           
           // Lämpötila näytöllä
           it.printf(231, 10, id(font_temp), Color::WHITE, temp_str);
-          it.printf(231, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
+          //it.printf(231, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
