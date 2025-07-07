@@ -752,9 +752,9 @@ text_sensor:
           id(text_response).state = (truncated+"...").c_str();
         }
 
-  - platform: homeassistant
-    id: outside_weather_sensor
-    entity_id: weather.home
+#  - platform: homeassistant
+#    id: outside_weather_sensor
+#    entity_id: weather.home
 
 color:
   - id: idle_color
@@ -832,7 +832,7 @@ display:
           
           // Lämpötila näytöllä
           it.printf(225, 10, id(font_temp), Color::WHITE, temp_str);
-          it.printf(225, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
+          //it.printf(225, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
