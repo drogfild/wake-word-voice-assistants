@@ -717,9 +717,17 @@ font:
   - file:
       type: gfonts
       family: ${font_family}
-      weight: 300
+      weight: 700
     id: font_clock
     size: 50
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 300
+    id: font_temp
+    size: 40
     glyphsets:
       - ${font_glyphsets}
 
@@ -743,6 +751,10 @@ text_sensor:
           std::string truncated = esphome::str_truncate(name.c_str(),31);
           id(text_response).state = (truncated+"...").c_str();
         }
+
+  - platform: homeassistant
+    id: outside_weather_sensor
+    entity_id: weather.home
 
 color:
   - id: idle_color
@@ -795,20 +807,38 @@ display:
         lambda: |-
           // Hae nykyinen aika Home Assistantista
           auto now = id(ha_time).now();
-          char time_str[6];
-          sprintf(time_str, "%02u:%02u", now.hour, now.minute);
+          
+          // Muodosta merkkijonot
+          char hour_colon[4];
+          char minute_str[3];
+          sprintf(hour_colon, "%02u:", now.hour);
+          sprintf(minute_str, "%02u", now.minute);
+
+          // Laske merkkijonojen pikselileveydet
+          int w_hour = it.get_string_width(hour_colon, id(font_clock));
+          int w_min  = it.get_string_width(minute_str, id(font_clock));
+          int total_w = w_hour + w_min;
+          int x = 160 - total_w / 2;
+
 
           // Hae ulkolämpötila Home Assistantista
           float temp = id(outside_temp_sensor).state;
           char temp_str[8];
           sprintf(temp_str, "%.0f°C", temp);
 
+
           // Piirrä sivu
           it.fill(id(idle_color));
           // Kellonaika näytöllä
-          it.printf(160, 182, id(font_clock), Color::WHITE, TextAlign::CENTER, time_str);
+          // Piirrä tunnit & kaksoispiste valkoisella
+          it.printf(x, 182, id(font_clock), Color::WHITE, TextAlign::LEFT, hour_colon);
+          // Piirrä minuutit keltaisella
+          it.printf(x + w_hour, 182, id(font_clock), Color::YELLOW, TextAlign::LEFT, minute_str);
+
+          
           // Lämpötila näytöllä
-          it.printf(231, 10, id(font_request), Color::WHITE, temp_str);
+          it.printf(231, 10, id(font_temp), Color::WHITE, temp_str);
+          it.printf(231, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
