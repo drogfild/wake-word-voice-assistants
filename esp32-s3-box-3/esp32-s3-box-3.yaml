@@ -815,10 +815,10 @@ display:
           sprintf(minute_str, "%02u", now.minute);
 
           // Laske merkkijonojen pikselileveydet
-          int w_hour = it.get_string_width(hour_colon, id(font_clock));
-          int w_min  = it.get_string_width(minute_str, id(font_clock));
-          int total_w = w_hour + w_min;
-          int x = 160 - total_w / 2;
+          //int w_hour = it.get_string_width(hour_colon, id(font_clock));
+          //int w_min  = it.get_string_width(minute_str, id(font_clock));
+          //int total_w = w_hour + w_min;
+          //int x = 160 - total_w / 2;
 
 
           // Hae ulkolämpötila Home Assistantista
@@ -831,9 +831,9 @@ display:
           it.fill(id(idle_color));
           // Kellonaika näytöllä
           // Piirrä tunnit & kaksoispiste valkoisella
-          it.printf(x, 182, id(font_clock), Color::WHITE, TextAlign::LEFT, hour_colon);
+          it.printf(160, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
           // Piirrä minuutit keltaisella
-          it.printf(x + w_hour, 182, id(font_clock), Color::YELLOW, TextAlign::LEFT, minute_str);
+          it.printf(160, 182, id(font_clock), Color::YELLOW, TextAlign::LEFT, minute_str);
 
           
           // Lämpötila näytöllä
