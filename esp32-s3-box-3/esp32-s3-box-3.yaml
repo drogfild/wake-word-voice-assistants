@@ -814,12 +814,6 @@ display:
           sprintf(hour_colon, "%02u:", now.hour);
           sprintf(minute_str, "%02u", now.minute);
 
-          // Laske merkkijonojen pikselileveydet
-          //int w_hour = it.get_string_width(hour_colon, id(font_clock));
-          //int w_min  = it.get_string_width(minute_str, id(font_clock));
-          //int total_w = w_hour + w_min;
-          //int x = 160 - total_w / 2;
-
 
           // Hae ulkolämpötila Home Assistantista
           float temp = id(outside_temp_sensor).state;
@@ -831,14 +825,14 @@ display:
           it.fill(id(idle_color));
           // Kellonaika näytöllä
           // Piirrä tunnit & kaksoispiste valkoisella
-          it.printf(160, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
+          it.printf(165, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
           // Piirrä minuutit keltaisella
-          it.printf(160, 182, id(font_clock), Color::WHITE, TextAlign::LEFT, minute_str);
+          it.printf(165, 182, id(font_clock), Color(0xFF, 0xFF, 0x00), TextAlign::LEFT, minute_str);
 
           
           // Lämpötila näytöllä
-          it.printf(231, 10, id(font_temp), Color::WHITE, temp_str);
-          //it.printf(231, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
+          it.printf(225, 10, id(font_temp), Color::WHITE, temp_str);
+          it.printf(225, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
