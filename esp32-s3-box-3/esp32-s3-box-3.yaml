@@ -221,8 +221,8 @@ micro_wake_word:
   id: mww
   models:
     - model: okay_nabu
-#    - hey_mycroft
-#    - hey_jarvis
+    # - hey_mycroft
+    # - hey_jarvis
   on_wake_word_detected:
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
@@ -730,12 +730,10 @@ font:
     size: 40
     glyphsets:
       - ${font_glyphsets}
-
-  - file: https://raw.githubusercontent.com/googlefonts/noto-emoji/main/fonts/NotoColorEmoji.ttf
+  - file: https://raw.githubusercontent.com/erikflowers/weather-icons/master/font/weathericons-regular-webfont.ttf
     id: font_weather_icon
     size: 40
-    glyphs: "☀🌙☁⛅🌧❄🌬🌫⚡⛈"
-
+    glyphs: "\uf00d\uf02e\uf013\uf002\uf019\uf018\uf016\uf01d\uf01b\uf0b5\uf021\uf050\uf014\uf015\uf07b"
   - file:
       type: gfonts
       family: ${font_family}
@@ -778,6 +776,7 @@ text_sensor:
   - platform: homeassistant
     id: outside_weather_sensor
     entity_id: weather.home
+
     
   - platform: homeassistant
     id: headline_text
@@ -835,7 +834,7 @@ display:
     update_interval: 5s
     pages:
       - id: idle_page
-        #it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
+        # it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
         lambda: |-
           // Hae nykyinen aika Home Assistantista
           auto now = id(ha_time).now();
@@ -853,16 +852,22 @@ display:
 
           // Hae säätila Home Assistantista
           std::string weather_state = id(outside_weather_sensor).state;
-          const char *weather_icon = "☀";
-          if (weather_state == "clear-night") weather_icon = "🌙";
-          else if (weather_state == "cloudy") weather_icon = "☁";
-          else if (weather_state == "partlycloudy") weather_icon = "⛅";
-          else if (weather_state == "rainy" || weather_state == "pouring") weather_icon = "🌧";
-          else if (weather_state == "lightning") weather_icon = "⚡";
-          else if (weather_state == "lightning-rainy") weather_icon = "⛈";
-          else if (weather_state == "snowy" || weather_state == "snowy-rainy") weather_icon = "❄";
-          else if (weather_state == "windy") weather_icon = "🌬";
-          else if (weather_state == "fog") weather_icon = "🌫";
+
+          const char *weather_icon = "\uf07b";
+          if (weather_state == "sunny") weather_icon = "\uf00d";
+          else if (weather_state == "clear-night") weather_icon = "\uf02e";
+          else if (weather_state == "cloudy") weather_icon = "\uf013";
+          else if (weather_state == "partlycloudy") weather_icon = "\uf002";
+          else if (weather_state == "rainy") weather_icon = "\uf019";
+          else if (weather_state == "pouring") weather_icon = "\uf018";
+          else if (weather_state == "lightning") weather_icon = "\uf016";
+          else if (weather_state == "lightning-rainy") weather_icon = "\uf01d";
+          else if (weather_state == "snowy") weather_icon = "\uf01b";
+          else if (weather_state == "snowy-rainy") weather_icon = "\uf0b5";
+          else if (weather_state == "windy" || weather_state == "windy-variant") weather_icon = "\uf021";
+          else if (weather_state == "fog") weather_icon = "\uf014";
+          else if (weather_state == "hail") weather_icon = "\uf015";
+
 
           // Piirrä sivu
           it.fill(id(idle_color));
