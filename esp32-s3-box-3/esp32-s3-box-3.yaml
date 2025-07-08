@@ -758,6 +758,14 @@ font:
     size: 30
     # glyphs for mdi:currency-eur and mdi:flash-outline
     glyphs: "\U000F01AD\U000F06D5"
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 300
+    id: font_energy
+    size: 15
+    glyphsets:
+      - ${font_glyphsets}
 
 text_sensor:
   - id: text_request
@@ -872,23 +880,20 @@ display:
 
           // Hae sähkön hinta Home Assistantista
           float electricity_price = id(electricity_price_sensor).state;
-          int price_percent = (int) round(id(electricity_price_percent_sensor).state * 100.0f);
-          char price_text[32];
-          sprintf(price_text, "%.1f c [ %d%% ]", electricity_price, price_percent);
+          char price_text[16];
+          sprintf(price_text, "%.1f c", electricity_price);
           std::string price_display = price_text;
           if (id(cheap_price_3h).state) {
             price_display += " HALPAA";
           }
-          Color price_color;
-          if (price_percent > 30) price_color = Color(0xFF,0x00,0x00);
-          else if (price_percent > 10) price_color = Color(0xFF,0xFF,0x00);
-          else if (price_percent > -5) price_color = Color(0x80,0x80,0x80);
-          else price_color = Color(0x00,0xFF,0x00);
+          Color price_color = Color::WHITE;
+          if (electricity_price >= 15.0f) price_color = Color(0xFF,0x00,0x00);
+          else if (electricity_price >= 10.0f) price_color = Color(0xFF,0xFF,0x00);
 
           float power_now = id(power_sensor).state;
           char power_text[16];
           sprintf(power_text, "%.0f W", power_now);
-          Color power_color = power_now > 1000 ? Color(0xFF,0x00,0x00) : Color(0x00,0xFF,0x00);
+          Color power_color = power_now > 3000 ? Color(0xFF,0x00,0x00) : Color::WHITE;
 
           // Hae säätila Home Assistantista
           std::string weather_state = id(outside_weather_sensor).state;
@@ -918,9 +923,9 @@ display:
           // Lämpötila ja sää näytöllä
           // Sähkön hinta ja virrankulutus vasemmassa yläkulmassa
           it.printf(10, 10, id(font_mdi), price_color, "󰆭");
-          it.printf(45, 10, id(font_temp), price_color, "%s", price_display.c_str());
+          it.printf(45, 10, id(font_energy), price_color, "%s", price_display.c_str());
           it.printf(10, 44, id(font_mdi), power_color, "󰛕");
-          it.printf(45, 44, id(font_temp), power_color, "%s", power_text);
+          it.printf(45, 44, id(font_energy), power_color, "%s", power_text);
 
           it.printf(190, 10, id(font_weather_icon), Color::WHITE, weather_icon);
           it.printf(it.get_width() - 10, 10, id(font_temp), Color(0xFF, 0xFF, 0x00), TextAlign::RIGHT, temp_str);
