@@ -221,8 +221,8 @@ micro_wake_word:
   id: mww
   models:
     - model: okay_nabu
-#    - hey_mycroft
-#    - hey_jarvis
+    #    - hey_mycroft
+    #    - hey_jarvis
   on_wake_word_detected:
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
@@ -730,6 +730,22 @@ font:
     size: 40
     glyphsets:
       - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 600
+    id: font_headline_text
+    size: 26
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 300
+    id: font_headline_subtitle
+    size: 20
+    glyphsets:
+      - ${font_glyphsets}
 
 text_sensor:
   - id: text_request
@@ -751,6 +767,14 @@ text_sensor:
           std::string truncated = esphome::str_truncate(name.c_str(),31);
           id(text_response).state = (truncated+"...").c_str();
         }
+
+  - platform: homeassistant
+    id: headline_text
+    entity_id: input_text.display_headline_text
+
+  - platform: homeassistant
+    id: headline_subtitle
+    entity_id: input_text.display_headline_subtitle
 
 #  - platform: homeassistant
 #    id: outside_weather_sensor
@@ -803,33 +827,34 @@ display:
     update_interval: 5s
     pages:
       - id: idle_page
-        #it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
+        # it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
         lambda: |-
           // Hae nykyinen aika Home Assistantista
           auto now = id(ha_time).now();
-          
           // Muodosta merkkijonot
           char hour_colon[4];
           char minute_str[3];
           sprintf(hour_colon, "%02u:", now.hour);
           sprintf(minute_str, "%02u", now.minute);
-
-
           // Hae ulkolämpötila Home Assistantista
           float temp = id(outside_temp_sensor).state;
           char temp_str[8];
           sprintf(temp_str, "%.0f°C", temp);
-
-
           // Piirrä sivu
           it.fill(id(idle_color));
+          // Piirrä otsikkoruutu keltaisella reunalla vain jos tekstiä on
+          if (id(headline_text).state.length() > 0 || id(headline_subtitle).state.length() > 0) {
+            for (int i = 0; i < 3; i++) {
+              it.rectangle(20 + i, 80 + i, 280 - 2 * i, 80 - 2 * i, Color(0xFF, 0xFF, 0x00));
+            }
+          }
+          it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
+          it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
           // Kellonaika näytöllä
           // Piirrä tunnit & kaksoispiste valkoisella
           it.printf(165, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
           // Piirrä minuutit keltaisella
           it.printf(165, 182, id(font_clock), Color(0xFF, 0xFF, 0x00), TextAlign::LEFT, minute_str);
-
-          
           // Lämpötila näytöllä
           it.printf(225, 10, id(font_temp), Color::WHITE, temp_str);
           //it.printf(225, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
