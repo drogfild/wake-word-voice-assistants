@@ -221,8 +221,8 @@ micro_wake_word:
   id: mww
   models:
     - model: okay_nabu
-#    - hey_mycroft
-#    - hey_jarvis
+    # - hey_mycroft
+    # - hey_jarvis
   on_wake_word_detected:
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
@@ -730,6 +730,10 @@ font:
     size: 40
     glyphsets:
       - ${font_glyphsets}
+  - file: https://raw.githubusercontent.com/erikflowers/weather-icons/master/font/weathericons-regular-webfont.ttf
+    id: font_weather_icon
+    size: 40
+    glyphs: "\uf00d\uf02e\uf013\uf002\uf019\uf018\uf016\uf01d\uf01b\uf0b5\uf021\uf050\uf014\uf015\uf07b"
 
 text_sensor:
   - id: text_request
@@ -752,9 +756,9 @@ text_sensor:
           id(text_response).state = (truncated+"...").c_str();
         }
 
-#  - platform: homeassistant
-#    id: outside_weather_sensor
-#    entity_id: weather.home
+  - platform: homeassistant
+    id: outside_weather_sensor
+    entity_id: weather.home
 
 color:
   - id: idle_color
@@ -803,23 +807,38 @@ display:
     update_interval: 5s
     pages:
       - id: idle_page
-        #it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
+        # it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
         lambda: |-
           // Hae nykyinen aika Home Assistantista
           auto now = id(ha_time).now();
-          
+
           // Muodosta merkkijonot
           char hour_colon[4];
           char minute_str[3];
           sprintf(hour_colon, "%02u:", now.hour);
           sprintf(minute_str, "%02u", now.minute);
 
-
           // Hae ulkolämpötila Home Assistantista
           float temp = id(outside_temp_sensor).state;
           char temp_str[8];
           sprintf(temp_str, "%.0f°C", temp);
 
+          // Hae säätila Home Assistantista
+          std::string weather_state = id(outside_weather_sensor).state;
+          const char *weather_icon = "\uf07b";
+          if (weather_state == "sunny") weather_icon = "\uf00d";
+          else if (weather_state == "clear-night") weather_icon = "\uf02e";
+          else if (weather_state == "cloudy") weather_icon = "\uf013";
+          else if (weather_state == "partlycloudy") weather_icon = "\uf002";
+          else if (weather_state == "rainy") weather_icon = "\uf019";
+          else if (weather_state == "pouring") weather_icon = "\uf018";
+          else if (weather_state == "lightning") weather_icon = "\uf016";
+          else if (weather_state == "lightning-rainy") weather_icon = "\uf01d";
+          else if (weather_state == "snowy") weather_icon = "\uf01b";
+          else if (weather_state == "snowy-rainy") weather_icon = "\uf0b5";
+          else if (weather_state == "windy" || weather_state == "windy-variant") weather_icon = "\uf021";
+          else if (weather_state == "fog") weather_icon = "\uf014";
+          else if (weather_state == "hail") weather_icon = "\uf015";
 
           // Piirrä sivu
           it.fill(id(idle_color));
@@ -829,10 +848,10 @@ display:
           // Piirrä minuutit keltaisella
           it.printf(165, 182, id(font_clock), Color(0xFF, 0xFF, 0x00), TextAlign::LEFT, minute_str);
 
-          
-          // Lämpötila näytöllä
+          // Lämpötila ja sää näytöllä
+          it.printf(190, 10, id(font_weather_icon), Color::WHITE, weather_icon);
           it.printf(225, 10, id(font_temp), Color::WHITE, temp_str);
-          //it.printf(225, 44, id(font_temp), Color::WHITE, id(outside_weather_sensor).state);
+          it.printf(225, 44, id(font_temp), Color::WHITE, "%s", weather_state.c_str());
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
