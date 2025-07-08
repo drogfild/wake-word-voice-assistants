@@ -756,7 +756,8 @@ font:
   - file: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
     id: font_mdi
     size: 30
-    glyphs: "󰆭󰛕"
+    # glyphs for mdi:currency-eur and mdi:flash-outline
+    glyphs: "\U000F01AD\U000F06D5"
 
 text_sensor:
   - id: text_request
