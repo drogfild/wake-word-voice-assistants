@@ -112,6 +112,9 @@ binary_sensor:
           - ON for at least 10s
         then:
           - button.press: factory_reset_btn
+  - platform: homeassistant
+    id: cheap_price_3h
+    entity_id: binary_sensor.nordpool_cheapest_3_hours
 
 output:
   - platform: ledc
@@ -750,7 +753,10 @@ font:
     size: 20
     glyphsets:
       - ${font_glyphsets}
-
+  - file: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
+    id: font_mdi
+    size: 30
+    glyphs: "\uf01ad\uf06d5"
 
 text_sensor:
   - id: text_request
@@ -777,15 +783,12 @@ text_sensor:
     id: outside_weather_sensor
     entity_id: weather.home
 
-    
   - platform: homeassistant
     id: headline_text
     entity_id: input_text.display_headline_text
-
   - platform: homeassistant
     id: headline_subtitle
     entity_id: input_text.display_headline_subtitle
-
 
 color:
   - id: idle_color
@@ -818,6 +821,16 @@ sensor:
   - platform: homeassistant
     id: outside_temp_sensor
     entity_id: sensor.outdoor_ble_temperature
+  - platform: homeassistant
+    id: electricity_price_sensor
+    entity_id: sensor.nordpool_cnt
+  - platform: homeassistant
+    id: electricity_price_percent_sensor
+    entity_id: sensor.nordpool_cnt
+    attribute: price_percent_to_average
+  - platform: homeassistant
+    id: power_sensor
+    entity_id: sensor.electricity_meter_monitor_power_consumption
 
 display:
   - platform: ili9xxx
@@ -856,6 +869,26 @@ display:
             }
           }
 
+          // Hae sähkön hinta Home Assistantista
+          float electricity_price = id(electricity_price_sensor).state;
+          int price_percent = (int) round(id(electricity_price_percent_sensor).state * 100.0f);
+          char price_text[32];
+          sprintf(price_text, "%.1f c [ %d%% ]", electricity_price, price_percent);
+          std::string price_display = price_text;
+          if (id(cheap_price_3h).state) {
+            price_display += " HALPAA";
+          }
+          Color price_color;
+          if (price_percent > 30) price_color = Color(0xFF,0x00,0x00);
+          else if (price_percent > 10) price_color = Color(0xFF,0xFF,0x00);
+          else if (price_percent > -5) price_color = Color(0x80,0x80,0x80);
+          else price_color = Color(0x00,0xFF,0x00);
+
+          float power_now = id(power_sensor).state;
+          char power_text[16];
+          sprintf(power_text, "%.0f W", power_now);
+          Color power_color = power_now > 1000 ? Color(0xFF,0x00,0x00) : Color(0x00,0xFF,0x00);
+
           // Hae säätila Home Assistantista
           std::string weather_state = id(outside_weather_sensor).state;
 
@@ -874,7 +907,6 @@ display:
           else if (weather_state == "fog") weather_icon = "\uf014";
           else if (weather_state == "hail") weather_icon = "\uf015";
 
-
           it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
           it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
           // Kellonaika näytöllä
@@ -883,9 +915,15 @@ display:
           // Piirrä minuutit keltaisella
           it.printf(165, 182, id(font_clock), Color(0xFF, 0xFF, 0x00), TextAlign::LEFT, minute_str);
           // Lämpötila ja sää näytöllä
+          // Sähkön hinta ja virrankulutus vasemmassa yläkulmassa
+          it.printf(10, 10, id(font_mdi), price_color, "\uf01ad");
+          it.printf(45, 10, id(font_temp), price_color, "%s", price_display.c_str());
+          it.printf(10, 44, id(font_mdi), power_color, "\uf06d5");
+          it.printf(45, 44, id(font_temp), power_color, "%s", power_text);
+
           it.printf(190, 10, id(font_weather_icon), Color::WHITE, weather_icon);
-          it.printf(225, 10, id(font_temp), Color::WHITE, temp_str);
-          it.printf(225, 44, id(font_temp), Color::WHITE, "%s", weather_state.c_str());
+          it.printf(it.get_width() - 10, 10, id(font_temp), Color(0xFF, 0xFF, 0x00), TextAlign::RIGHT, temp_str);
+          it.printf(it.get_width() - 10, 44, id(font_temp), Color::WHITE, TextAlign::RIGHT, "%s", weather_state.c_str());
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
