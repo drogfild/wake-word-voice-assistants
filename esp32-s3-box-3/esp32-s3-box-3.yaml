@@ -834,6 +834,10 @@ sensor:
     id: electricity_price_sensor
     entity_id: sensor.nordpool_cnt
   - platform: homeassistant
+    id: electricity_price_percent_sensor
+    entity_id: sensor.nordpool_cnt
+    attribute: price_percent_to_average
+  - platform: homeassistant
     id: power_sensor
     entity_id: sensor.electricity_meter_monitor_power_consumption
 
