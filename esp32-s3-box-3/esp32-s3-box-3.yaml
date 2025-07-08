@@ -27,7 +27,7 @@ substitutions:
   voice_assist_timer_finished_phase_id: "20"
 
   # These unique characters have been extracted from every test file of every language available on https://github.com/home-assistant/intents (14 March 2024)
-  # However, the Figtree font only contains Latin characters, so there is no point using this... unlessyou change the font configuration accordingly.
+  # However, the Figtree font only contains Latin characters, so there is no point using this... unless you change the font configuration accordingly.
   allowed_characters: " !#%'()+,-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWYZ[]_abcdefghijklmnopqrstuvwxyz{|}°²³µ¿ÁÂÄÅÉÖÚßàáâãäåæçèéêëìíîðñòóôõöøùúûüýþāăąćčďĐđēėęěğĮįıļľŁłńňőřśšťũūůűųźŻżŽžơưșțΆΈΌΐΑΒΓΔΕΖΗΘΚΜΝΠΡΣΤΥΦάέήίαβγδεζηθικλμνξοπρςστυφχψωϊόύώАБВГДЕЖЗИКЛМНОПРСТУХЦЧШЪЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяёђєіїјљњћאבגדהוזחטיכלםמןנסעפץצקרשת،ءآأإئابةتجحخدذرزسشصضطظعغفقكلمنهوىيٹپچڈکگںھہیےংকচতধনফবযরলশষস়ািু্చయలిెొ్ംഅആഇഈഉഎഓകഗങചജഞടഡണതദധനപഫബഭമയരറലളവശസഹാിീുൂെേൈ്ൺൻർൽൾაბგდევზთილმნოპრსტუფქყშჩცძჭხạảấầẩậắặẹẽếềểệỉịọỏốồổỗộớờởợụủứừửữựỳ—、一上不个中为主乾了些亮人任低佔何作供依侧係個側偵充光入全关冇冷几切到制前動區卧厅厨及口另右吊后吗启吸呀咗哪唔問啟嗎嘅嘛器圍在场執場外多大始安定客室家密寵对將小少左已帘常幫幾库度庫廊廚廳开式後恆感態成我戲戶户房所扇手打执把拔换掉控插摄整斯新明是景暗更最會有未本模機檯櫃欄次正氏水沒没洗活派温測源溫漏潮激濕灯為無煙照熱燈燥物狀玄现現瓦用發的盞目着睡私空窗立笛管節簾籬紅線红罐置聚聲脚腦腳臥色节著行衣解設調請謝警设调走路車车运連遊運過道邊部都量鎖锁門閂閉開關门闭除隱離電震霧面音頂題顏颜風风食餅餵가간감갔강개거게겨결경고공과관그금급기길깥꺼껐꼽나난내네놀누는능니다닫담대더데도동됐되된됨둡드든등디때떤뜨라래러렇렌려로료른를리림링마많명몇모무문물뭐바밝방배변보부불블빨뽑사산상색서설성세센션소쇼수스습시신실싱아안않알았애야어얼업없었에여연열옆오온완외왼요운움워원위으은을음의이인일임입있작잠장재전절정제져조족종주줄중줘지직진짐쪽차창천최추출충치침커컴켜켰쿠크키탁탄태탬터텔통트튼티파팬퍼폰표퓨플핑한함해했행혀현화활후휴힘，？"
 
   # Add support for non-unicode characters by using better glyphset
@@ -735,6 +735,29 @@ font:
     size: 40
     glyphs: "\uf00d\uf02e\uf013\uf002\uf019\uf018\uf016\uf01d\uf01b\uf0b5\uf021\uf050\uf014\uf015\uf07b"
 
+  - file: https://raw.githubusercontent.com/googlefonts/noto-emoji/main/fonts/NotoColorEmoji.ttf
+    id: font_weather_icon
+    size: 40
+    glyphs: "☀🌙☁⛅🌧❄🌬🌫⚡⛈"
+
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 600
+    id: font_headline_text
+    size: 26
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 300
+    id: font_headline_subtitle
+    size: 20
+    glyphsets:
+      - ${font_glyphsets}
+
+
 text_sensor:
   - id: text_request
     platform: template
@@ -759,6 +782,17 @@ text_sensor:
   - platform: homeassistant
     id: outside_weather_sensor
     entity_id: weather.home
+
+    
+  - platform: homeassistant
+    id: headline_text
+    entity_id: input_text.display_headline_text
+
+  - platform: homeassistant
+    id: headline_subtitle
+    entity_id: input_text.display_headline_subtitle
+
+
 
 color:
   - id: idle_color
@@ -825,6 +859,7 @@ display:
 
           // Hae säätila Home Assistantista
           std::string weather_state = id(outside_weather_sensor).state;
+
           const char *weather_icon = "\uf07b";
           if (weather_state == "sunny") weather_icon = "\uf00d";
           else if (weather_state == "clear-night") weather_icon = "\uf02e";
@@ -840,8 +875,13 @@ display:
           else if (weather_state == "fog") weather_icon = "\uf014";
           else if (weather_state == "hail") weather_icon = "\uf015";
 
+
           // Piirrä sivu
           it.fill(id(idle_color));
+          // Piirrä otsikkoruutu keltaisella reunalla
+          it.rectangle(20, 80, 280, 80, Color(0xFF, 0xFF, 0x00));
+          it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
+          it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
           // Kellonaika näytöllä
           // Piirrä tunnit & kaksoispiste valkoisella
           it.printf(165, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
