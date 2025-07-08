@@ -730,10 +730,29 @@ font:
     size: 40
     glyphsets:
       - ${font_glyphsets}
+
   - file: https://raw.githubusercontent.com/googlefonts/noto-emoji/main/fonts/NotoColorEmoji.ttf
     id: font_weather_icon
     size: 40
     glyphs: "☀🌙☁⛅🌧❄🌬🌫⚡⛈"
+
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 600
+    id: font_headline_text
+    size: 26
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 300
+    id: font_headline_subtitle
+    size: 20
+    glyphsets:
+      - ${font_glyphsets}
+
 
 text_sensor:
   - id: text_request
@@ -759,6 +778,15 @@ text_sensor:
   - platform: homeassistant
     id: outside_weather_sensor
     entity_id: weather.home
+    
+  - platform: homeassistant
+    id: headline_text
+    entity_id: input_text.display_headline_text
+
+  - platform: homeassistant
+    id: headline_subtitle
+    entity_id: input_text.display_headline_subtitle
+
 
 color:
   - id: idle_color
@@ -838,6 +866,10 @@ display:
 
           // Piirrä sivu
           it.fill(id(idle_color));
+          // Piirrä otsikkoruutu keltaisella reunalla
+          it.rectangle(20, 80, 280, 80, Color(0xFF, 0xFF, 0x00));
+          it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
+          it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
           // Kellonaika näytöllä
           // Piirrä tunnit & kaksoispiste valkoisella
           it.printf(165, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
