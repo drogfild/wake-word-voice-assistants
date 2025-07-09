@@ -755,7 +755,7 @@ font:
       - ${font_glyphsets}
   - file: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
     id: font_mdi
-    size: 30
+    size: 22
     # glyphs for mdi:currency-eur and mdi:flash-outline
     glyphs: "\U000F01AD\U000F06D5"
   - file:
@@ -763,7 +763,7 @@ font:
       family: ${font_family}
       weight: 300
     id: font_energy
-    size: 15
+    size: 22
     glyphsets:
       - ${font_glyphsets}
 
@@ -929,7 +929,7 @@ display:
 
           it.printf(190, 10, id(font_weather_icon), Color::WHITE, weather_icon);
           it.printf(it.get_width() - 10, 10, id(font_temp), Color(0xFF, 0xFF, 0x00), TextAlign::RIGHT, temp_str);
-          it.printf(it.get_width() - 10, 44, id(font_temp), Color::WHITE, TextAlign::RIGHT, "%s", weather_state.c_str());
+          it.printf(it.get_width() - 10, 48, id(font_temp), Color::WHITE, TextAlign::RIGHT, "%s", weather_state.c_str());
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
