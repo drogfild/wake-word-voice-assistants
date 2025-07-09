@@ -798,6 +798,10 @@ text_sensor:
   - platform: homeassistant
     id: headline_subtitle
     entity_id: input_text.display_headline_subtitle
+  - platform: homeassistant
+    id: nordpool_prices_today
+    entity_id: sensor.nordpool_cnt
+    attribute: today
 
 color:
   - id: idle_color
@@ -876,6 +880,45 @@ display:
             for (int i = 0; i < 3; i++) {
               it.rectangle(20 + i, 80 + i, 280 - 2 * i, 80 - 2 * i, Color(0xFF, 0xFF, 0x00));
             }
+            it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
+            it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
+          } else {
+            std::string data = id(nordpool_prices_today).state;
+            data.erase(std::remove(data.begin(), data.end(), '['), data.end());
+            data.erase(std::remove(data.begin(), data.end(), ']'), data.end());
+            std::vector<float> prices;
+            std::stringstream ss(data);
+            std::string token;
+            while (std::getline(ss, token, ',')) {
+              prices.push_back(std::stof(token));
+            }
+            if (prices.size() > 1) {
+              float min_p = *std::min_element(prices.begin(), prices.end());
+              float max_p = *std::max_element(prices.begin(), prices.end());
+              float min_y = 0.0f;
+              float max_y = 7.0f;
+              if (min_p < 0.0f) min_y = floor(min_p / 5.0f) * 5.0f;
+              if (max_p > 7.0f) max_y = ceil(max_p / 5.0f) * 5.0f;
+              float range = max_y - min_y;
+              int gx = 20;
+              int gy = 80;
+              int gw = 280;
+              int gh = 80;
+              float step = gw / float(prices.size() - 1);
+              int px = gx;
+              int py = gy + gh - ((prices[0] - min_y) / range) * gh;
+              for (size_t i = 1; i < prices.size(); i++) {
+                int x = gx + step * i;
+                int y = gy + gh - ((prices[i] - min_y) / range) * gh;
+                it.line(px, py, x, y, Color::WHITE);
+                px = x;
+                py = y;
+              }
+              int zero_y = gy + gh - ((0 - min_y) / range) * gh;
+              it.line(gx, zero_y, gx + gw, zero_y, Color(0x80,0x80,0x80));
+              int now_x = gx + step * now.hour;
+              it.line(now_x, gy, now_x, gy + gh, Color(0xFF,0xFF,0x00));
+            }
           }
 
           // Hae sähkön hinta Home Assistantista
@@ -913,8 +956,6 @@ display:
           else if (weather_state == "fog") weather_icon = "\uf014";
           else if (weather_state == "hail") weather_icon = "\uf015";
 
-          it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
-          it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
           // Kellonaika näytöllä
           // Piirrä tunnit & kaksoispiste valkoisella
           it.printf(165, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
