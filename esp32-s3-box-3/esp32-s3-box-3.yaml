@@ -887,10 +887,20 @@ display:
             data.erase(std::remove(data.begin(), data.end(), '['), data.end());
             data.erase(std::remove(data.begin(), data.end(), ']'), data.end());
             std::vector<float> prices;
-            std::stringstream ss(data);
-            std::string token;
-            while (std::getline(ss, token, ',')) {
-              prices.push_back(std::stof(token));
+            size_t start = 0;
+            while (start < data.size()) {
+              size_t comma = data.find(',', start);
+              std::string token;
+              if (comma == std::string::npos) {
+                token = data.substr(start);
+                start = data.size();
+              } else {
+                token = data.substr(start, comma - start);
+                start = comma + 1;
+              }
+              if (!token.empty()) {
+                prices.push_back(std::stof(token));
+              }
             }
             if (prices.size() > 1) {
               float min_p = *std::min_element(prices.begin(), prices.end());
