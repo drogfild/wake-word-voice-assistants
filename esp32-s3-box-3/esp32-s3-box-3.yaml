@@ -800,7 +800,7 @@ text_sensor:
     entity_id: input_text.display_headline_subtitle
   - platform: homeassistant
     id: nordpool_prices_today
-    entity_id: sensor.nordpool_cnt
+    entity_id: sensor.nordpool
     attribute: today
 
 color:
@@ -836,10 +836,10 @@ sensor:
     entity_id: sensor.outdoor_ble_temperature
   - platform: homeassistant
     id: electricity_price_sensor
-    entity_id: sensor.nordpool_cnt
+    entity_id: sensor.nordpool
   - platform: homeassistant
     id: electricity_price_percent_sensor
-    entity_id: sensor.nordpool_cnt
+    entity_id: sensor.nordpool
     attribute: price_percent_to_average
   - platform: homeassistant
     id: power_sensor
@@ -899,7 +899,7 @@ display:
                 start = comma + 1;
               }
               if (!token.empty()) {
-                prices.push_back(std::stof(token));
+                prices.push_back(std::stof(token) * 100.0f);
               }
             }
             if (prices.size() > 1) {
@@ -931,17 +931,17 @@ display:
             }
           }
 
-          // Hae sähkön hinta Home Assistantista
-          float electricity_price = id(electricity_price_sensor).state;
+          // Hae sähkön hinta Home Assistantista (EUR/kWh -> muutetaan senteiksi)
+          float electricity_price_cents = id(electricity_price_sensor).state * 100.0f;
           char price_text[16];
-          sprintf(price_text, "%.1f c", electricity_price);
+          sprintf(price_text, "%.1f c", electricity_price_cents);
           std::string price_display = price_text;
           if (id(cheap_price_3h).state) {
             price_display += " HALPAA";
           }
           Color price_color = Color::WHITE;
-          if (electricity_price >= 15.0f) price_color = Color(0xFF,0x00,0x00);
-          else if (electricity_price >= 10.0f) price_color = Color(0xFF,0xFF,0x00);
+          if (electricity_price_cents >= 15.0f) price_color = Color(0xFF,0x00,0x00);
+          else if (electricity_price_cents >= 10.0f) price_color = Color(0xFF,0xFF,0x00);
 
           float power_now = id(power_sensor).state;
           char power_text[16];
