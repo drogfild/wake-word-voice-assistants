@@ -808,6 +808,9 @@ text_sensor:
   - platform: homeassistant
     id: tumble_dryer_status
     entity_id: sensor.tumble_dryer_status
+  - platform: homeassistant
+    id: pesis_myclub_next
+    entity_id: sensor.pesis_myclub_next
 
 color:
   - id: idle_color
@@ -993,6 +996,12 @@ display:
           it.printf(190, 10, id(font_weather_icon), Color::WHITE, weather_icon);
           it.printf(it.get_width() - 10, 10, id(font_temp), Color(0xFF, 0xFF, 0x00), TextAlign::RIGHT, temp_str);
           it.printf(it.get_width() - 10, 48, id(font_temp), Color::WHITE, TextAlign::RIGHT, "%s", weather_state.c_str());
+
+          // Näytä kalenteritieto
+          std::string pesis_event = id(pesis_myclub_next).state;
+          if (pesis_event != "unavailable" && pesis_event != "unknown" && pesis_event != "") {
+            it.printf(10, 170, id(font_energy), Color::WHITE, TextAlign::LEFT, "%s", pesis_event.c_str());
+          }
 
           // Kuivausrummun ja pyykkikoneen j\xE4ljell\xE4 oleva aika vasempaan alanurkkaan
           int washer_y = it.get_height() - 37; // 22px font height + 15px timeline
