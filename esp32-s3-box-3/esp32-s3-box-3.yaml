@@ -756,8 +756,8 @@ font:
   - file: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
     id: font_mdi
     size: 22
-    # glyphs for mdi:currency-eur and mdi:flash-outline
-    glyphs: "\U000F01AD\U000F06D5"
+    # glyphs for mdi:currency-eur, mdi:flash-outline, mdi:washing-machine and mdi:tumble-dryer
+    glyphs: "\U000F01AD\U000F06D5\U000F072A\U000F0917"
   - file:
       type: gfonts
       family: ${font_family}
@@ -798,6 +798,16 @@ text_sensor:
   - platform: homeassistant
     id: headline_subtitle
     entity_id: input_text.display_headline_subtitle
+  - platform: homeassistant
+    id: nordpool_prices_today
+    entity_id: sensor.nordpool
+    attribute: today
+  - platform: homeassistant
+    id: washing_machine_status
+    entity_id: sensor.washing_machine_status
+  - platform: homeassistant
+    id: tumble_dryer_status
+    entity_id: sensor.tumble_dryer_status
 
 color:
   - id: idle_color
@@ -832,14 +842,20 @@ sensor:
     entity_id: sensor.outdoor_ble_temperature
   - platform: homeassistant
     id: electricity_price_sensor
-    entity_id: sensor.nordpool_cnt
+    entity_id: sensor.nordpool
   - platform: homeassistant
     id: electricity_price_percent_sensor
-    entity_id: sensor.nordpool_cnt
+    entity_id: sensor.nordpool
     attribute: price_percent_to_average
   - platform: homeassistant
     id: power_sensor
     entity_id: sensor.electricity_meter_monitor_power_consumption
+  - platform: homeassistant
+    id: washing_machine_remaining_time
+    entity_id: sensor.washing_machine_remaining_time
+  - platform: homeassistant
+    id: tumble_dryer_remaining_time
+    entity_id: sensor.tumble_dryer_remaining_time
 
 display:
   - platform: ili9xxx
@@ -876,19 +892,78 @@ display:
             for (int i = 0; i < 3; i++) {
               it.rectangle(20 + i, 80 + i, 280 - 2 * i, 80 - 2 * i, Color(0xFF, 0xFF, 0x00));
             }
+            it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
+            it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
+          } else {
+            std::string data = id(nordpool_prices_today).state;
+            data.erase(std::remove(data.begin(), data.end(), '['), data.end());
+            data.erase(std::remove(data.begin(), data.end(), ']'), data.end());
+            std::vector<float> prices;
+            size_t start = 0;
+            while (start < data.size()) {
+              size_t comma = data.find(',', start);
+              std::string token;
+              if (comma == std::string::npos) {
+                token = data.substr(start);
+                start = data.size();
+              } else {
+                token = data.substr(start, comma - start);
+                start = comma + 1;
+              }
+              if (!token.empty()) {
+                prices.push_back(std::stof(token) * 100.0f);
+              }
+            }
+            size_t point_count = prices.size();
+            if (point_count > 1) {
+              float min_p = *std::min_element(prices.begin(), prices.end());
+              float max_p = *std::max_element(prices.begin(), prices.end());
+              float min_y = 0.0f;
+              float max_y = 7.0f;
+              if (min_p < 0.0f) min_y = floor(min_p / 5.0f) * 5.0f;
+              if (max_p > 7.0f) max_y = ceil(max_p / 5.0f) * 5.0f;
+              float range = max_y - min_y;
+              int gx = 20;
+              int gy = 80;
+              int gw = 280;
+              int gh = 80;
+              float step = gw / float(point_count - 1);
+              int px = gx;
+              int py = gy + gh - ((prices[0] - min_y) / range) * gh;
+              for (size_t i = 1; i < point_count; i++) {
+                int x = gx + step * i;
+                int y = gy + gh - ((prices[i] - min_y) / range) * gh;
+                it.line(px, py, x, y, Color::WHITE);
+                px = x;
+                py = y;
+              }
+              if (range > 0.0f) {
+                int zero_y = gy + gh - ((0 - min_y) / range) * gh;
+                if (zero_y >= gy && zero_y <= gy + gh) {
+                  it.line(gx, zero_y, gx + gw, zero_y, Color(0x80,0x80,0x80));
+                }
+              }
+              float minutes_per_point = 1440.0f / static_cast<float>(point_count);
+              float minutes_now = now.hour * 60.0f + now.minute;
+              int current_index = static_cast<int>(floor(minutes_now / minutes_per_point + 1e-3f));
+              if (current_index < 0) current_index = 0;
+              if (current_index >= static_cast<int>(point_count)) current_index = point_count - 1;
+              int now_x = gx + static_cast<int>(step * current_index + 0.5f);
+              it.line(now_x, gy, now_x, gy + gh, Color(0xFF,0xFF,0x00));
+            }
           }
 
-          // Hae sähkön hinta Home Assistantista
-          float electricity_price = id(electricity_price_sensor).state;
+          // Hae sähkön hinta Home Assistantista (EUR/kWh -> muutetaan senteiksi)
+          float electricity_price_cents = id(electricity_price_sensor).state * 100.0f;
           char price_text[16];
-          sprintf(price_text, "%.1f c", electricity_price);
+          sprintf(price_text, "%.1f c", electricity_price_cents);
           std::string price_display = price_text;
           if (id(cheap_price_3h).state) {
             price_display += " HALPAA";
           }
           Color price_color = Color::WHITE;
-          if (electricity_price >= 15.0f) price_color = Color(0xFF,0x00,0x00);
-          else if (electricity_price >= 10.0f) price_color = Color(0xFF,0xFF,0x00);
+          if (electricity_price_cents >= 15.0f) price_color = Color(0xFF,0x00,0x00);
+          else if (electricity_price_cents >= 10.0f) price_color = Color(0xFF,0xFF,0x00);
 
           float power_now = id(power_sensor).state;
           char power_text[16];
@@ -913,8 +988,6 @@ display:
           else if (weather_state == "fog") weather_icon = "\uf014";
           else if (weather_state == "hail") weather_icon = "\uf015";
 
-          it.printf(it.get_width() / 2, 100, id(font_headline_text), Color::WHITE, TextAlign::CENTER, "%s", id(headline_text).state.c_str());
-          it.printf(it.get_width() / 2, 130, id(font_headline_subtitle), Color::WHITE, TextAlign::CENTER, "%s", id(headline_subtitle).state.c_str());
           // Kellonaika näytöllä
           // Piirrä tunnit & kaksoispiste valkoisella
           it.printf(165, 182, id(font_clock), Color::WHITE, TextAlign::RIGHT, hour_colon);
@@ -930,6 +1003,30 @@ display:
           it.printf(190, 10, id(font_weather_icon), Color::WHITE, weather_icon);
           it.printf(it.get_width() - 10, 10, id(font_temp), Color(0xFF, 0xFF, 0x00), TextAlign::RIGHT, temp_str);
           it.printf(it.get_width() - 10, 48, id(font_temp), Color::WHITE, TextAlign::RIGHT, "%s", weather_state.c_str());
+
+          // Kuivausrummun ja pyykkikoneen j\xE4ljell\xE4 oleva aika vasempaan alanurkkaan
+          int washer_y = it.get_height() - 37; // 22px font height + 15px timeline
+          int dryer_y = washer_y - 20;
+          {
+            std::string dryer_status = id(tumble_dryer_status).state;
+            std::transform(dryer_status.begin(), dryer_status.end(), dryer_status.begin(), ::tolower);
+            if (dryer_status != "off") {
+              char dryer_text[16];
+              sprintf(dryer_text, "%d min", (int)id(tumble_dryer_remaining_time).state);
+              it.printf(10, dryer_y, id(font_mdi), Color::WHITE, "\U000F0917");
+              it.printf(45, dryer_y, id(font_energy), Color::WHITE, "%s", dryer_text);
+            }
+          }
+          {
+            std::string wash_status = id(washing_machine_status).state;
+            std::transform(wash_status.begin(), wash_status.end(), wash_status.begin(), ::tolower);
+            if (wash_status != "off") {
+              char wash_text[16];
+              sprintf(wash_text, "%d min", (int)id(washing_machine_remaining_time).state);
+              it.printf(10, washer_y, id(font_mdi), Color::WHITE, "\U000F072A");
+              it.printf(45, washer_y, id(font_energy), Color::WHITE, "%s", wash_text);
+            }
+          }
 
           // Mahdolliset omat widgetit
           id(draw_timer_timeline).execute();
