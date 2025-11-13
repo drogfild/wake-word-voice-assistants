@@ -941,7 +941,11 @@ display:
               }
               int zero_y = gy + gh - ((0 - min_y) / range) * gh;
               it.line(gx, zero_y, gx + gw, zero_y, Color(0x80,0x80,0x80));
-              int now_x = gx + step * now.hour;
+              float minutes_since_midnight = (now.hour * 60) + now.minute;
+              float interval_minutes = 1440.0f / float(prices.size() - 1);
+              float interval_index = minutes_since_midnight / interval_minutes;
+              int now_x = gx + (interval_index * step);
+              now_x = std::min(gx + gw, std::max(gx, now_x));
               it.line(now_x, gy, now_x, gy + gh, Color(0xFF,0xFF,0x00));
             }
           }
